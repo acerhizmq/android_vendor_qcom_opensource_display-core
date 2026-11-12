@@ -501,6 +501,13 @@ Error SnapMetadataManager::GraphicsMetadataHelper(SnapMetadata *metadata,
   if (out_get != nullptr) {
     *static_cast<vendor_qti_hardware_display_common_GraphicsMetadata *>(out_get) =
         metadata->graphics_metadata;
+    // Adreno validates whatever it gets back, so a buffer without graphics metadata (YUV video,
+    // camera) must report it as unset like legacy gralloc does. Callers that pass
+    // check_metadata_set=false still get the same bytes and NONE.
+    if (!GetMetadataStateInternal(metadata,
+                                  vendor_qti_hardware_display_common_MetadataType::GRAPHICS_METADATA)) {
+      return Error::METADATA_NOT_SET;
+    }
     return Error::NONE;
   } else if (in_set != nullptr) {
     metadata->graphics_metadata =
